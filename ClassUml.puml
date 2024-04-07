@@ -1,0 +1,336 @@
+@startuml
+class org.ly.opensudoku.game.command.EditCellNoteCommand {
+- CellNote mNote
+- CellNote mOldNote
++ void serialize(StringBuilder)
+# void _deserialize(StringTokenizer)
+~ void execute()
+~ void undo()
+}
+class org.ly.opensudoku.game.Node {
+~ Node left
+~ Node columnHeader
+~ int rowID
+~ int colID
+~ int count
+}
+class org.ly.opensudoku.game.command.ClearAllNotesCommand {
+~ void execute()
+}
+class org.ly.opensudoku.game.CellCollection {
++ {static} int SUDOKU_SIZE
++ {static} int DATA_VERSION_PLAIN
++ {static} int DATA_VERSION_1
++ {static} int DATA_VERSION_2
++ {static} int DATA_VERSION_3
++ {static} int DATA_VERSION
+- {static} Pattern DATA_PATTERN_VERSION_PLAIN
+- {static} Pattern DATA_PATTERN_VERSION_1
+- {static} Pattern DATA_PATTERN_VERSION_2
+- {static} Pattern DATA_PATTERN_VERSION_3
+- List<OnChangeListener> mChangeListeners
+- Cell[][] mCells
+- CellGroup[] mSectors
+- CellGroup[] mRows
+- CellGroup[] mColumns
+- boolean mOnChangeEnabled
++ {static} CellCollection createEmpty()
++ {static} CellCollection createDebugGame()
++ {static} CellCollection deserialize(StringTokenizer,int)
++ {static} CellCollection deserialize(String)
++ {static} CellCollection fromString(String)
++ {static} boolean isValid(String,int)
++ {static} boolean isValid(String)
++ boolean isEmpty()
++ Cell[][] getCells()
++ Cell getCell(int,int)
++ Cell findFirstCell(int)
++ void markAllCellsAsValid()
++ boolean validate()
++ boolean isCompleted()
++ void markAllCellsAsEditable()
++ void markFilledCellsAsNotEditable()
++ void fillInNotes()
++ void fillInNotesWithAllValues()
++ void removeNotesForChangedCell(Cell,int)
++ Map<Integer,Integer> getValuesUseCount()
+- void initCollection()
++ String serialize()
++ String serialize(int)
++ void serialize(StringBuilder)
++ void serialize(StringBuilder,int)
++ void addOnChangeListener(OnChangeListener)
++ void removeOnChangeListener(OnChangeListener)
+# void onChange()
+}
+interface org.ly.opensudoku.game.CellCollection$OnChangeListener {
+~ void onChange()
+}
+class org.ly.opensudoku.game.FolderInfo {
++ long id
++ String name
++ int puzzleCount
++ int solvedCount
++ int playingCount
++ String getDetail(Context)
+}
+class org.ly.opensudoku.game.command.SetCellValueCommand {
+- int mValue
+- int mOldValue
++ void serialize(StringBuilder)
+# void _deserialize(StringTokenizer)
+~ void execute()
+~ void undo()
+}
+abstract class org.ly.opensudoku.game.command.AbstractSingleCellCommand {
+- int mCellRow
+- int mCellColumn
++ void serialize(StringBuilder)
+# void _deserialize(StringTokenizer)
++ Cell getCell()
+}
+class org.ly.opensudoku.game.Cell {
+- Object mCellCollectionLock
+- CellCollection mCellCollection
+- int mRowIndex
+- int mColumnIndex
+- CellGroup mSector
+- CellGroup mRow
+- CellGroup mColumn
+- int mValue
+- CellNote mNote
+- boolean mEditable
+- boolean mValid
++ {static} Cell deserialize(StringTokenizer,int)
++ {static} Cell deserialize(String)
++ int getRowIndex()
++ int getColumnIndex()
+# void initCollection(CellCollection,int,int,CellGroup,CellGroup,CellGroup)
++ CellGroup getSector()
++ CellGroup getRow()
++ CellGroup getColumn()
++ int getValue()
++ void setValue(int)
++ CellNote getNote()
++ void setNote(CellNote)
++ boolean isEditable()
++ void setEditable(Boolean)
++ boolean isValid()
++ void setValid(Boolean)
++ void serialize(StringBuilder,int)
++ String serialize()
++ String serialize(int)
+- void onChange()
+}
+abstract class org.ly.opensudoku.game.command.AbstractMultiNoteCommand {
+# List<NoteEntry> mOldNotes
++ void serialize(StringBuilder)
+# void _deserialize(StringTokenizer)
+~ void undo()
+# void saveOldNotes()
+}
+class org.ly.opensudoku.game.command.AbstractMultiNoteCommand$NoteEntry {
++ int rowIndex
++ int colIndex
++ CellNote note
+}
+class org.ly.opensudoku.game.command.SetCellValueAndRemoveNotesCommand {
+- int mCellRow
+- int mCellColumn
+- int mValue
+- int mOldValue
++ Cell getCell()
++ void serialize(StringBuilder)
+# void _deserialize(StringTokenizer)
+~ void execute()
+~ void undo()
+}
+class org.ly.opensudoku.game.SudokuGame {
++ {static} int GAME_STATE_PLAYING
++ {static} int GAME_STATE_NOT_STARTED
++ {static} int GAME_STATE_COMPLETED
+- long mId
+- long mCreated
+- int mState
+- long mTime
+- long mLastPlayed
+- String mNote
+- CellCollection mCells
+- SudokuSolver mSolver
+- boolean mUsedSolver
+- boolean mRemoveNotesOnEntry
+- OnPuzzleSolvedListener mOnPuzzleSolvedListener
+- CommandStack mCommandStack
+- long mActiveFromTime
++ {static} SudokuGame createEmptyGame()
++ void saveState(Bundle)
++ void restoreState(Bundle)
++ void setOnPuzzleSolvedListener(OnPuzzleSolvedListener)
++ String getNote()
++ void setNote(String)
++ long getCreated()
++ void setCreated(long)
++ int getState()
++ void setState(int)
++ long getTime()
++ void setTime(long)
++ long getLastPlayed()
++ void setLastPlayed(long)
++ CellCollection getCells()
++ void setCells(CellCollection)
++ long getId()
++ void setId(long)
++ CommandStack getCommandStack()
++ void setCommandStack(CommandStack)
++ void setRemoveNotesOnEntry(boolean)
++ void setCellValue(Cell,int)
++ void setCellNote(Cell,CellNote)
+- void executeCommand(AbstractCommand)
++ void undo()
++ boolean hasSomethingToUndo()
++ void setUndoCheckpoint()
++ void undoToCheckpoint()
++ boolean hasUndoCheckpoint()
++ void undoToBeforeMistake()
++ Cell getLastChangedCell()
++ void start()
++ void resume()
++ void pause()
++ boolean isSolvable()
++ void solve()
++ boolean usedSolver()
++ void solveCell(Cell)
+- void finish()
++ void reset()
++ boolean isCompleted()
++ void clearAllNotes()
++ void fillInNotes()
++ void fillInNotesWithAllValues()
++ void validate()
+}
+interface org.ly.opensudoku.game.SudokuGame$OnPuzzleSolvedListener {
+~ void onPuzzleSolved()
+}
+class org.ly.opensudoku.game.SudokuSolver {
+- int NUM_ROWS
+- int NUM_COLS
+- int NUM_VALS
+- int NUM_CONSTRAINTS
+- int NUM_CELLS
+- int[][] mConstraintMatrix
+- Node[][] mLinkedList
+- Node mHead
+- ArrayList<Node> mSolution
++ void setPuzzle(CellCollection)
++ ArrayList<int[]> solve()
+- void initializeConstraintMatrix()
+- void initializeLinkedList()
++ ArrayList<Node> DLX()
+- int cellToRow(int,int,int,boolean)
+- int[] rowToCell(int,boolean)
+- int moveLeft(int,int)
+- int moveRight(int,int)
+- int moveUp(int,int)
+- int moveDown(int,int)
+- void cover(Node)
+- void uncover(Node)
+- Node chooseColumn()
+}
+class org.ly.opensudoku.game.command.FillInNotesCommand {
+~ void execute()
+}
+class org.ly.opensudoku.game.command.CommandStack {
+- Stack<AbstractCommand> mCommandStack
+- CellCollection mCells
++ {static} CommandStack deserialize(String,CellCollection)
++ {static} CommandStack deserialize(StringTokenizer,CellCollection)
++ String serialize()
++ void serialize(StringBuilder)
++ boolean empty()
++ void execute(AbstractCommand)
++ void undo()
++ void setCheckpoint()
++ boolean hasCheckpoint()
++ void undoToCheckpoint()
+- boolean hasMistakes(ArrayList<int[]>)
++ void undoToSolvableState()
++ boolean hasSomethingToUndo()
++ Cell getLastChangedCell()
+- void push(AbstractCommand)
+- AbstractCommand pop()
+- void validateCells()
+}
+class org.ly.opensudoku.game.CellNote {
++ {static} CellNote EMPTY
+- short mNotedNumbers
++ {static} CellNote deserialize(String)
++ {static} CellNote deserialize(String,int)
++ {static} CellNote fromIntArray(Integer[])
++ void serialize(StringBuilder)
++ String serialize()
++ List<Integer> getNotedNumbers()
++ CellNote toggleNumber(int)
++ CellNote addNumber(int)
++ CellNote removeNumber(int)
++ boolean hasNumber(int)
++ CellNote clear()
++ boolean isEmpty()
+}
+class org.ly.opensudoku.game.command.CheckpointCommand {
+~ void execute()
+~ void undo()
+}
+class org.ly.opensudoku.game.CellGroup {
+- Cell[] mCells
+- int mPos
++ void addCell(Cell)
+# boolean validate()
++ boolean DoesntContain(int)
++ Cell[] getCells()
+}
+class org.ly.opensudoku.game.command.FillInNotesWithAllValuesCommand {
+~ void execute()
+}
+abstract class org.ly.opensudoku.game.command.AbstractCommand {
+- {static} CommandDef[] commands
++ {static} AbstractCommand deserialize(StringTokenizer)
+# void _deserialize(StringTokenizer)
++ void serialize(StringBuilder)
++ String getCommandClass()
+~ {abstract}void execute()
+~ {abstract}void undo()
+}
+interface org.ly.opensudoku.game.command.AbstractCommand$CommandCreatorFunction {
+~ AbstractCommand create()
+}
+class org.ly.opensudoku.game.command.AbstractCommand$CommandDef {
+~ String mLongName
+~ String mShortName
+~ CommandCreatorFunction mCreator
++ AbstractCommand create()
++ String getLongName()
++ String getShortName()
+}
+abstract class org.ly.opensudoku.game.command.AbstractCellCommand {
+- CellCollection mCells
+# CellCollection getCells()
+# void setCells(CellCollection)
+}
+
+
+org.ly.opensudoku.game.command.AbstractSingleCellCommand <|-- org.ly.opensudoku.game.command.EditCellNoteCommand
+org.ly.opensudoku.game.command.AbstractMultiNoteCommand <|-- org.ly.opensudoku.game.command.ClearAllNotesCommand
+org.ly.opensudoku.game.CellCollection +.. org.ly.opensudoku.game.CellCollection$OnChangeListener
+org.ly.opensudoku.game.command.AbstractSingleCellCommand <|-- org.ly.opensudoku.game.command.SetCellValueCommand
+org.ly.opensudoku.game.command.AbstractCellCommand <|-- org.ly.opensudoku.game.command.AbstractSingleCellCommand
+org.ly.opensudoku.game.command.AbstractCellCommand <|-- org.ly.opensudoku.game.command.AbstractMultiNoteCommand
+org.ly.opensudoku.game.command.AbstractMultiNoteCommand +.. org.ly.opensudoku.game.command.AbstractMultiNoteCommand$NoteEntry
+org.ly.opensudoku.game.command.AbstractMultiNoteCommand <|-- org.ly.opensudoku.game.command.SetCellValueAndRemoveNotesCommand
+org.ly.opensudoku.game.SudokuGame +.. org.ly.opensudoku.game.SudokuGame$OnPuzzleSolvedListener
+org.ly.opensudoku.game.command.AbstractMultiNoteCommand <|-- org.ly.opensudoku.game.command.FillInNotesCommand
+org.ly.opensudoku.game.command.AbstractCommand <|-- org.ly.opensudoku.game.command.CheckpointCommand
+org.ly.opensudoku.game.command.AbstractMultiNoteCommand <|-- org.ly.opensudoku.game.command.FillInNotesWithAllValuesCommand
+org.ly.opensudoku.game.command.AbstractCommand +.. org.ly.opensudoku.game.command.AbstractCommand$CommandCreatorFunction
+org.ly.opensudoku.game.command.AbstractCommand +.. org.ly.opensudoku.game.command.AbstractCommand$CommandDef
+org.ly.opensudoku.game.command.AbstractCommand <|-- org.ly.opensudoku.game.command.AbstractCellCommand
+@enduml
